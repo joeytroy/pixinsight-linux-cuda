@@ -1,0 +1,19 @@
+# Downloaded installers — large and/or license-gated. Never commit these.
+*.deb
+*.tar.gz
+*.tar.xz
+cudnn_install/
+pixinsight_install/
+
+# Setup progress state written by setup-cuda-pixinsight.sh
+*.pixinsight-cuda-setup.state
+*.state
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
