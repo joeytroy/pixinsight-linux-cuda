@@ -135,6 +135,7 @@ If you'd rather do it by hand, these are the exact steps the script performs.
 ```bash
 sudo apt update && sudo apt upgrade
 ```
+
 </details>
 
 <details>
@@ -143,6 +144,7 @@ sudo apt update && sudo apt upgrade
 ```bash
 sudo apt install build-essential
 ```
+
 </details>
 
 <details>
@@ -154,6 +156,7 @@ sudo reboot
 # after reboot, confirm the driver loaded:
 nvidia-smi
 ```
+
 </details>
 
 <details>
@@ -191,6 +194,7 @@ source ~/.bashrc
 echo "/usr/local/cuda/lib64" | sudo tee -a /etc/ld.so.conf
 sudo ldconfig
 ```
+
 </details>
 
 <details>
@@ -233,6 +237,7 @@ cd ~/Downloads
 tar -xf PI-linux-x64-1.9.4-20260522-c.tar.xz
 sudo ./installer
 ```
+
 </details>
 
 <details>
