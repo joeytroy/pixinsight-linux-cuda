@@ -1,0 +1,10 @@
+# markdownlint-cli2 configuration
+# https://github.com/DavidAnson/markdownlint-cli2
+config:
+  MD013: false   # line length — prose/tables/URLs are intentionally long
+  MD033: false   # inline HTML — the README uses <details>/<summary> blocks
+  MD041: false   # first line in file — badges/intro flexibility
+globs:
+  - "**/*.md"
+ignores:
+  - ".git"

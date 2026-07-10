@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    name: Shell script checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bash syntax check (bash -n)
+        run: |
+          fail=0
+          while IFS= read -r -d '' f; do
+            echo ":: bash -n $f"
+            bash -n "$f" || fail=1
+          done < <(find . -name '*.sh' -not -path './.git/*' -print0)
+          exit $fail
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: ShellCheck
+        run: |
+          fail=0
+          while IFS= read -r -d '' f; do
+            echo ":: shellcheck $f"
+            shellcheck -S warning "$f" || fail=1
+          done < <(find . -name '*.sh' -not -path './.git/*' -print0)
+          exit $fail
+
+      - name: Executable bit set on scripts
+        run: |
+          fail=0
+          while IFS= read -r -d '' f; do
+            if [ ! -x "$f" ]; then
+              echo "::error file=$f::script is not executable (chmod +x $f)"
+              fail=1
+            fi
+          done < <(find . -name '*.sh' -not -path './.git/*' -print0)
+          exit $fail
+
+  markdownlint:
+    name: Markdown lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: '**/*.md'
