@@ -227,8 +227,10 @@ ${BOLD}cuDNN must be downloaded manually${RESET} — it is behind the NVIDIA Dev
      (You will need an authenticator app for 2FA.)
   2. Open the cuDNN archive:  https://developer.nvidia.com/rdp/cudnn-archive
   3. Choose "Download cuDNN v8.9.7 (December 5th, 2023) for CUDA 12.x"
-  4. Choose "Local Installer for Ubuntu22.04 x86_64 (Deb)"
-     File: cudnn-local-repo-ubuntu2204-${CUDNN_VERSION}_1.0-1_amd64.deb
+  4. Choose the "Local Installer ... x86_64 (Deb)" for Ubuntu 22.04 or 20.04
+     (either release's local-repo .deb works — both bundle the same libcudnn8):
+       cudnn-local-repo-ubuntu2204-${CUDNN_VERSION}_1.0-1_amd64.deb   (22.04)
+       cudnn-local-repo-ubuntu2004-${CUDNN_VERSION}_1.0-1_amd64.deb   (20.04)
   5. Save it into ${DOWNLOADS}/ and re-run this script, OR run:
      CUDNN_DEB=/path/to/that.deb $0
 EOF
@@ -238,22 +240,19 @@ EOF
     info "Using cuDNN package: $deb"
     local work="${DOWNLOADS}/cudnn_install"
     rm -rf "$work"; mkdir -p "$work"
-    cp "$deb" "$work/cudnn.deb"
     cd "$work" || die "Cannot cd into $work"
 
-    # The local-repo .deb is an ar archive; unpack it to get the inner libcudnn debs.
-    ar -x cudnn.deb
-    tar -xf data.tar.xz
+    # Unpack the local-repo .deb to get the inner libcudnn debs. dpkg-deb handles
+    # whatever compression the .deb uses (xz on 22.04, zstd on newer builds).
+    dpkg-deb -x "$deb" "$work" || die "Failed to unpack $deb — is dpkg installed?"
 
-    local pkgdir
-    pkgdir="$(find "$work" -type d -name 'cudnn-local-repo-*' | head -n1)"
-    [[ -n "$pkgdir" ]] || die "Could not find extracted cudnn-local-repo directory."
-
+    # The inner libcudnn8 .deb files live in var/cudnn-local-repo-*/; find them
+    # by name directly so we don't accidentally match the usr/share/doc dir.
     local runtime dev samples
-    runtime="$(ls "$pkgdir"/libcudnn8_*.deb 2>/dev/null | head -n1 || true)"
-    dev="$(ls "$pkgdir"/libcudnn8-dev_*.deb 2>/dev/null | head -n1 || true)"
-    samples="$(ls "$pkgdir"/libcudnn8-samples_*.deb 2>/dev/null | head -n1 || true)"
-    [[ -n "$runtime" && -n "$dev" ]] || die "Expected libcudnn8 .deb files not found in $pkgdir."
+    runtime="$(find "$work" -type f -name 'libcudnn8_*.deb' | head -n1 || true)"
+    dev="$(find "$work" -type f -name 'libcudnn8-dev_*.deb' | head -n1 || true)"
+    samples="$(find "$work" -type f -name 'libcudnn8-samples_*.deb' | head -n1 || true)"
+    [[ -n "$runtime" && -n "$dev" ]] || die "Expected libcudnn8 .deb files not found under $work — is this a cuDNN 8.x local-repo .deb?"
 
     sudo dpkg -i "$runtime"
     sudo dpkg -i "$dev"
