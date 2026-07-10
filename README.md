@@ -1,5 +1,10 @@
 # GPU (CUDA) Acceleration for PixInsight on Kubuntu
 
+[![CI](https://github.com/joeytroy/pixinsight-linux-cuda/actions/workflows/ci.yml/badge.svg)](https://github.com/joeytroy/pixinsight-linux-cuda/actions/workflows/ci.yml)
+[![Shell: Bash](https://img.shields.io/badge/Shell-Bash-4EAA25.svg?logo=gnu-bash&logoColor=white)](./setup-cuda-pixinsight.sh)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Donate via PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/paypalme/joeytroynm)
+
 Enable NVIDIA GPU acceleration for **PixInsight** and the **RC Astro** tools
 (StarXTerminator, NoiseXTerminator, BlurXTerminator) on **Kubuntu / Ubuntu
 24.04 LTS or 26.04 LTS**.
