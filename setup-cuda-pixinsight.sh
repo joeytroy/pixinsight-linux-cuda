@@ -211,7 +211,9 @@ do_env_config() {
 resolve_cudnn_deb() {
     [[ -n "$CUDNN_DEB" ]] && { echo "$CUDNN_DEB"; return; }
     local f
-    f="$(find_download "cudnn*.deb")"
+    # Match only the version we expect — a stray cuDNN 9.x local-repo .deb in
+    # ~/Downloads would otherwise be picked up (newest first) and fail later.
+    f="$(find_download "cudnn-local-repo-*${CUDNN_VERSION}*.deb")"
     echo "$f"
 }
 
@@ -219,7 +221,9 @@ do_cudnn() {
     info "Installing cuDNN ${CUDNN_VERSION}"
     local deb; deb="$(resolve_cudnn_deb)"
     if [[ -z "$deb" || ! -f "$deb" ]]; then
-        warn "cuDNN download not found."
+        warn "cuDNN ${CUDNN_VERSION} download not found."
+        local other; other="$(find_download "cudnn*.deb")"
+        [[ -n "$other" ]] && warn "Found $other, but it is not version ${CUDNN_VERSION} — it will be ignored."
         cat <<EOF
 ${BOLD}cuDNN must be downloaded manually${RESET} — it is behind the NVIDIA Developer login.
 
@@ -254,9 +258,13 @@ EOF
     samples="$(find "$work" -type f -name 'libcudnn8-samples_*.deb' | head -n1 || true)"
     [[ -n "$runtime" && -n "$dev" ]] || die "Expected libcudnn8 .deb files not found under $work — is this a cuDNN 8.x local-repo .deb?"
 
-    sudo dpkg -i "$runtime"
-    sudo dpkg -i "$dev"
-    [[ -n "$samples" ]] && sudo dpkg -i "$samples" || warn "samples package not found (optional) — skipping"
+    # An already-installed cuDNN 9.x conflicts with libcudnn8; dpkg -i refuses
+    # to replace a conflicting package, but apt resolves it (removes 9.x).
+    if dpkg -l 2>/dev/null | grep -qE '^ii\s+(libcudnn9|cudnn9)'; then
+        warn "A cuDNN 9.x package is installed — apt will replace it with ${CUDNN_VERSION}."
+    fi
+    [[ -z "$samples" ]] && warn "samples package not found (optional) — skipping"
+    sudo apt-get install -y --allow-downgrades "$runtime" "$dev" ${samples:+"$samples"}
     sudo ldconfig
     ok "cuDNN installed into /usr/lib/x86_64-linux-gnu/"
 }
